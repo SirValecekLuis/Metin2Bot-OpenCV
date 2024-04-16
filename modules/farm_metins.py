@@ -4,18 +4,20 @@ import time
 import random
 import cv2
 
+from game_settings import VALUES
+
 THRESHOLD = 0.12
 MOVEMENT_LIST = ["up", "down", "right", "left"]
 TEMPLATE = cv2.imread('./metin_picture.png')
-FILE_NAME = "./game_settings.py"
-VALUES = dict()
+CURSOR = cv2.imread('./cursor.png')
 
 
-def min_max(image, templates):
+def min_max(image, templates: list):
     for template in templates:
         res = cv2.matchTemplate(image, template, cv2.TM_SQDIFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
+        print(min_val)
         if min_val <= THRESHOLD:
             return min_loc
 
@@ -57,27 +59,12 @@ def get_screenshot(sct):
     return image
 
 
-def get_values_from_file():
-    try:
-        with open(FILE_NAME, "r") as f:
-            text = f.readlines()
-            for line in text:
-                if line.startswith("#"):
-                    continue
-                line = line.replace(" ", "").strip("\n").split("=")
-                if len(line) == 2:
-                    VALUES[line[0]] = float(line[1])
-    except Exception as e:
-        print("Chyba se souborem / v souboru.\n", e)
-        exit(-1)
-
-
 def farm_metins():
+    min_max(cv2.imread("./screen.png"), [CURSOR])
     print("STARTING and WAITING")
     time.sleep(5)
     print("BOT STARTED")
-    get_values_from_file()
-    metin_wait = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2))
+    metin_wait = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2) - 2)
     # This is to set up camera straight up above you and zoom out max
     pydirectinput.keyDown("g")
     pydirectinput.keyDown("f")
@@ -88,12 +75,14 @@ def farm_metins():
     with mss.mss() as sct:
         while True:
             while click_on_metin(sct) != 0:
-                random_movement(0.5, 4)
+                random_movement(0.5, 1)
 
             time.sleep(0.5)
+            gather_items()  # Sometimes metin is already destroyed
             click_on_metin(sct)
             time.sleep(1)
-            random_movement(0.3, 4)  # When 2 metins are behind each other, this helps
+            gather_items()  # Sometimes metin is already destroyed
+            random_movement(0.3, 2)  # When 2 metins are behind each other, tyhis helps
 
             time.sleep(metin_wait)
             gather_items()
