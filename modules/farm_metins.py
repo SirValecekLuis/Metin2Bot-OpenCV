@@ -9,7 +9,6 @@ from game_settings import VALUES
 THRESHOLD = 0.12
 MOVEMENT_LIST = ["up", "down", "right", "left"]
 TEMPLATE = cv2.imread('./metin_picture.png')
-CURSOR = cv2.imread('./cursor.png')
 
 
 def min_max(image, templates: list):
@@ -60,7 +59,6 @@ def get_screenshot(sct):
 
 
 def farm_metins():
-    min_max(cv2.imread("./screen.png"), [CURSOR])
     print("STARTING and WAITING")
     time.sleep(5)
     print("BOT STARTED")
@@ -82,7 +80,7 @@ def farm_metins():
             click_on_metin(sct)
             time.sleep(1)
             gather_items()  # Sometimes metin is already destroyed
-            random_movement(0.3, 2)  # When 2 metins are behind each other, tyhis helps
+            random_movement(0.3, 2)  # When 2 metins are behind each other, this helps
 
             time.sleep(metin_wait)
             gather_items()

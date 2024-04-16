@@ -17,4 +17,5 @@ def get_values_from_file():
         exit(-1)
 
 
-get_values_from_file()
+if len(VALUES) == 0:
+    get_values_from_file()
