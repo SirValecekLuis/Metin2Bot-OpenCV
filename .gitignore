@@ -1,3 +1,11 @@
-./screen.png
-./venv
-./.idea
+screen.png
+venv
+/screen.png
+/.idea/.gitignore
+/.idea/discord.xml
+/.idea/Metin2.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/vcs.xml
