@@ -3,6 +3,8 @@ import pydirectinput
 import time
 import random
 import cv2
+import numpy as np
+from PIL import Image
 
 from game_settings import VALUES
 
@@ -40,7 +42,7 @@ def gather_items():
 
 
 def click_on_metin(sct):
-    image = get_screenshot(sct)
+    image = get_screenshot(sct, "./screen.png")
     top_left = min_max(image, [TEMPLATE])
     if top_left == -1:
         return -1
@@ -51,12 +53,36 @@ def click_on_metin(sct):
     return 0
 
 
-def get_screenshot(sct):
-    sct.shot(output="./screen.png")
-    image = cv2.imread('./screen.png')
+def get_screenshot(sct, name: str, x=0, y=0, w=0, h=0, monitor_num=1, save=False):
+    if x == 0 and y == 0 and w == 0 and h == 0:
+        image = sct.grab(sct.monitors[monitor_num])
+        image = cv2.cvtColor(np.array(image), cv2.COLOR_BGRA2BGR)
+        return image
+
+    # Much faster but painful to implement
+    mon = sct.monitors[monitor_num]
+    monitor = {
+        "top": mon["top"] + y,
+        "left": mon["left"] + x,
+        "width": w,
+        "height": h,
+        "mon": monitor_num
+    }
+
+    image = sct.grab(monitor)
+
+    if save:
+        image = Image.frombytes("RGB", image.size, image.rgb)
+        image.save(name)
+
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_BGRA2BGR)
 
     return image
 
+
+def check_if_clicked():
+    # TODO: implement this
+    ...
 
 def farm_metins():
     print("STARTING and WAITING")
@@ -77,6 +103,7 @@ def farm_metins():
 
             time.sleep(0.5)
             gather_items()  # Sometimes metin is already destroyed
+            check_if_clicked()
             click_on_metin(sct)
             time.sleep(1)
             gather_items()  # Sometimes metin is already destroyed
