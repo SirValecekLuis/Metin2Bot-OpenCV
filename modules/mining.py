@@ -5,7 +5,7 @@ import time
 import cv2
 
 from game_settings import VALUES
-from modules.funcs import get_screenshot, find_needle_in_hay, click_on_object_ingame, gather_items, reset_camera_to_default, \
+from modules.funcs import get_screenshot, min_max, click_on_object_ingame, gather_items, reset_camera_to_default, \
     random_movement
 
 VEIN_PICTURE = cv2.imread('screenshots/vein_picture.png')
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def find_vein(sct) -> bool:
     """Tries to find a vein and clicks on it"""
     screenshot = get_screenshot(sct)
-    top_left = find_needle_in_hay(screenshot, [VEIN_PICTURE])
+    top_left = min_max(screenshot, [VEIN_PICTURE])
 
     # If vein was not found
     if top_left == -1:

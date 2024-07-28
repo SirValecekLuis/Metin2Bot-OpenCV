@@ -1,5 +1,5 @@
 FILE_NAME = "game_settings.cfg"
-VALUES = dict()
+VALUES = {}
 
 
 # TODO: check if this is good solution to do it like that (prob. not)

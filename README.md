@@ -4,4 +4,13 @@ I have no intentions to break rules and do malicious stuff. I take this as a mot
 
 There is "screen.png" which is not included and that's because it would leak my screenshot from the game and therefore my name as well.
 
+for installing pydirectinput use 
+
+pip install pydirectinput-rgx
+
+Thanks https://github.com/ReggX/pydirectinput_rgx
+
+
 SirValecekLuis
+
+

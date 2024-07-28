@@ -10,7 +10,6 @@ from PIL import Image
 
 logger = logging.getLogger(__name__)
 
-THRESHOLD = 0.12
 MOVEMENT_LIST = ["up", "down", "right", "left"]
 
 
@@ -64,13 +63,13 @@ def get_screenshot(sct, x=0, y=0, w=0, h=0, monitor_num=1, save=False, name=""):
     return image
 
 
-def find_needle_in_hay(hay, needle: list) -> Sequence[int] | int:
+def min_max(hay: np.ndarray, needles: list, threshold=0.12) -> Sequence[int] | int:
     """Tries to find a template(needle) from image(hay)"""
-    for template in needle:
+    for template in needles:
         res = cv2.matchTemplate(hay, template, cv2.TM_SQDIFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-        if min_val <= THRESHOLD:
+        if min_val <= threshold:
             return min_loc
 
     return -1
@@ -89,7 +88,7 @@ def random_movement(pause: float, times: int) -> None:
 
 
 def gather_items() -> None:
-    """Gathers item on the ground by pressing "y" in the game which is "z" in pydirecinput."""
+    """Gathers item on the ground by pressing "y" in the game which is "z" in pydirectinput."""
     for _ in range(random.randrange(2, 5)):
         pydirectinput.press('z')  # Change this to Y if pickup does not work
 
