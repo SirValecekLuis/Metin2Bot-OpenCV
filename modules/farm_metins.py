@@ -5,11 +5,12 @@ import time
 import cv2
 
 from game_settings import VALUES
-from modules.funcs import get_screenshot, min_max, random_movement, click_on_object_ingame, reset_camera_to_default, \
+from modules.funcs import get_screenshot, find_needle_in_hay, random_movement, click_on_object_ingame, reset_camera_to_default, \
     gather_items
 
-METIN_PICTURE = cv2.imread('./screenshots/metin_picture.png')
+METIN_PICTURE = cv2.imread('screenshots/metin_picture.png')
 METIN_POINT_ON_MAP = cv2.imread('screenshots/white_pixel.png')
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ def find_and_destroy_metin(sct) -> bool:
     """Tries to click on the metin based on coordinates from the screenshot."""
 
     screenshot = get_screenshot(sct)
-    top_left = min_max(screenshot, [METIN_PICTURE])
+    top_left = find_needle_in_hay(screenshot, [METIN_PICTURE])
 
     # If we failed to find a metin on the place, we will try to move
     # Otherwise click on metin and destroy it
@@ -91,7 +92,7 @@ def find_and_destroy_metin(sct) -> bool:
 
         # After moving, we will try to again find a metin
         screenshot = get_screenshot(sct)
-        top_left = min_max(screenshot, [METIN_PICTURE])
+        top_left = find_needle_in_hay(screenshot, [METIN_PICTURE])
 
         if top_left == -1:
             return False
