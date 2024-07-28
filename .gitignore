@@ -1,6 +1,5 @@
-screen.png
 venv
-/screen.png
+/screenshots/
 /.idea/.gitignore
 /.idea/discord.xml
 /.idea/Metin2.iml
@@ -9,4 +8,4 @@ venv
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/vcs.xml
-test.py
+/test.py

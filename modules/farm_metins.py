@@ -1,3 +1,5 @@
+from typing import Sequence
+
 import mss
 import pydirectinput
 import time
@@ -10,50 +12,11 @@ from game_settings import VALUES
 
 THRESHOLD = 0.12
 MOVEMENT_LIST = ["up", "down", "right", "left"]
-TEMPLATE = cv2.imread('./metin_picture.png')
+METIN_PICTURE = cv2.imread('./screenshots/metin_picture.png')
+METIN_POINT_ON_MAP = cv2.imread('screenshots/white_pixel.png')
 
 
-def min_max(image, templates: list):
-    for template in templates:
-        res = cv2.matchTemplate(image, template, cv2.TM_SQDIFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-
-        print(min_val)
-        if min_val <= THRESHOLD:
-            return min_loc
-
-    return -1
-
-
-def random_movement(pause: float, times: int):
-    for i in range(times):
-        movement = MOVEMENT_LIST[random.randint(0, 3)]
-
-        pydirectinput.keyDown(movement)
-        time.sleep(pause)
-        pydirectinput.keyUp(movement)
-
-    return
-
-
-def gather_items():
-    for _ in range(random.randrange(2, 5)):
-        pydirectinput.press('z')  # Change this to Y if pickup does not work
-
-
-def click_on_metin(sct):
-    image = get_screenshot(sct, "./screen.png")
-    top_left = min_max(image, [TEMPLATE])
-    if top_left == -1:
-        return -1
-    offset_x, offset_y = 30, 50
-    top_left = (top_left[0] + offset_x, top_left[1] + offset_y)
-    pydirectinput.moveTo(*top_left)
-    pydirectinput.click()
-    return 0
-
-
-def get_screenshot(sct, name: str, x=0, y=0, w=0, h=0, monitor_num=1, save=False):
+def get_screenshot(sct, name="", x=0, y=0, w=0, h=0, monitor_num=1, save=False):
     if x == 0 and y == 0 and w == 0 and h == 0:
         image = sct.grab(sct.monitors[monitor_num])
         image = cv2.cvtColor(np.array(image), cv2.COLOR_BGRA2BGR)
@@ -80,32 +43,175 @@ def get_screenshot(sct, name: str, x=0, y=0, w=0, h=0, monitor_num=1, save=False
     return image
 
 
-def check_if_clicked():
-    # TODO: implement this
-    ...
+def min_max(image, templates: list) -> Sequence[int] | int:
+    """Tries to find a template(needle) from image(hay)"""
+    for template in templates:
+        res = cv2.matchTemplate(image, template, cv2.TM_SQDIFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-def farm_metins():
-    print("STARTING and WAITING")
-    time.sleep(5)
-    print("BOT STARTED")
-    metin_wait = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2) - 2)
-    # This is to set up camera straight up above you and zoom out max
+        if min_val <= THRESHOLD:
+            return min_loc
+
+    return -1
+
+
+def random_movement(pause: float, times: int) -> None:
+    """Will move randomly to ensure chaos and therefore unstuck a player"""
+    for i in range(times):
+        movement = MOVEMENT_LIST[random.randint(0, 3)]
+
+        pydirectinput.keyDown(movement)
+        time.sleep(pause)
+        pydirectinput.keyUp(movement)
+
+    return
+
+
+def gather_items() -> None:
+    """Gathers item on the ground by pressing "y" in the game which is "z" in pydirecinput."""
+    for _ in range(random.randrange(2, 5)):
+        pydirectinput.press('z')  # Change this to Y if pickup does not work
+
+def click_on_object_ingame(top_left, offset_x, offset_y) -> None:
+    top_left = (top_left[0] + offset_x, top_left[1] + offset_y)
+    pydirectinput.moveTo(*top_left)
+    pydirectinput.click()
+
+
+# def calculate_vector_to_metin(screenshot) -> tuple[int, int] | int:
+#     min_loc = min_max(screenshot, [METIN_POINT_ON_MAP])
+#
+#     if min_loc == -1:
+#         return -1
+#
+#     vector = (min_loc[0] - VALUES["MINIMAP_CURSOR_X"], min_loc[1] - VALUES["MINIMAP_CURSOR_Y"])
+#     return vector
+
+
+# def move_to_metin_based_on_vector(vector) -> None:
+#     x, y = vector
+#     distance = abs(x) + abs(y)
+#     travel_time_secs = distance / VALUES["MOVEMENT_SPEED"]
+#
+#     # TODO: Fix this
+#     if y == 0:
+#         x_fraction = 1
+#     elif abs(x) >= abs(y):
+#         x_fraction = abs(y / x)
+#     else:
+#         x_fraction = abs(x / y)
+#
+#     y_fraction = 1 - x_fraction if x_fraction != 1 else 1
+#
+#     # If the vector is 45 °, then it is 1/2 time going x and 1/2 time going y
+#     # else get a fraction of how much time travel x and y
+#     if x_fraction == 1 and y_fraction == 1:
+#         x_travel_time = travel_time_secs / 0.5
+#         y_travel_time = x_travel_time
+#     else:
+#         x_travel_time = travel_time_secs * x_fraction
+#         y_travel_time = travel_time_secs * y_fraction
+#
+#     print(distance, travel_time_secs, x_fraction, y_fraction, x_travel_time, y_travel_time)
+#
+#     movement_x = "right" if x <= 0 else "left"
+#     movement_y = "up" if y <= 0 else "down"
+#
+#     # Move x axis for x_travel_time
+#     pydirectinput.keyDown(movement_x)
+#     time.sleep(x_travel_time)
+#     pydirectinput.keyUp(movement_x)
+#
+#     # Move y axis for y_travel_time
+#     pydirectinput.keyDown(movement_y)
+#     time.sleep(y_travel_time)
+#     pydirectinput.keyUp(movement_y)
+
+
+def find_and_destroy_metin(sct) -> bool:
+    """Tries to click on the metin based on coordinates from the screenshot."""
+
+    screenshot = get_screenshot(sct)
+    top_left = min_max(screenshot, [METIN_PICTURE])
+
+    # If we failed to find a metin on the place, we will try to move
+    # Otherwise click on metin and destroy it
+    if top_left == -1:
+
+        # # Get way where to go
+        # vector = calculate_vector_to_metin(screenshot)
+        #
+        # print(vector)
+        #
+        # # If white pixel was not found, that means there is no metin around on the map and will try to move randomly to find
+        # if vector == -1:
+        #     return False
+        #
+        # # When we found a vector where the metin is, we will move
+        # move_to_metin_based_on_vector(vector)
+
+        # TODO: fix this, this is temporary to work
+        random_movement(0.3, 1)
+
+        # After moving, we will try to again find a metin
+        screenshot = get_screenshot(sct)
+        top_left = min_max(screenshot, [METIN_PICTURE])
+
+        if top_left == -1:
+            return False
+
+        # When the metin is found, we will click on it
+        click_on_object_ingame(top_left, 30, 50)
+
+        # Say that the metin was clicked successfully
+        return True
+
+    else:
+        # When the metin is found, we will click on it
+        click_on_object_ingame(top_left, 30, 50)
+
+        # Say that the metin was clicked successfully
+        return True
+
+
+def reset_camera_to_default() -> None:
     pydirectinput.keyDown("g")
     pydirectinput.keyDown("f")
     time.sleep(3)
     pydirectinput.keyUp("g")
     pydirectinput.keyUp("f")
 
+def check_if_clicked():
+    # TODO: implement this and check if the metin is clicked on and if yes then continue if not then try to click again
+    #   It would be nice to check when the metin is destroyed (the black bar from metin disappears and by that we know
+    #   the metin is destroyed)
+    ...
+
+
+def farm_metins():
+    # TODO: only do a job if bot is selected, probably ask OS what window is picked and if not metin, then do not run
+    # TODO: try to get screenshot from the game even if the game is not on screen? I have no idea if I can send signals
+    #   to the game or not
+
+    print("STARTING and WAITING -> FARMING")
+    time.sleep(5)
+    print("BOT STARTED")
+    metin_wait = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2) - 2)
+    if metin_wait <= 0:
+        metin_wait = 1
+    # This is to set up camera straight up above you and zoom out max
+    reset_camera_to_default()
+
     with mss.mss() as sct:
         while True:
-            while click_on_metin(sct) != 0:
-                random_movement(0.5, 1)
+            while find_and_destroy_metin(sct) is False:
+                random_movement(0.3, 1)
 
-            time.sleep(0.5)
-            gather_items()  # Sometimes metin is already destroyed
-            check_if_clicked()
-            click_on_metin(sct)
-            time.sleep(1)
+            # time.sleep(0.5)
+            # gather_items()  # Sometimes metin is already destroyed
+            # check_if_clicked()
+            # click_on_metin(sct)
+            # time.sleep(1)
             gather_items()  # Sometimes metin is already destroyed
             random_movement(0.3, 2)  # When 2 metins are behind each other, this helps
 
