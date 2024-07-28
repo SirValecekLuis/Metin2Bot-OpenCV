@@ -1,4 +1,5 @@
 import random
+import logging
 import time
 from typing import Sequence
 
@@ -7,10 +8,37 @@ import numpy as np
 import pydirectinput
 from PIL import Image
 
+logger = logging.getLogger(__name__)
+
 THRESHOLD = 0.12
 MOVEMENT_LIST = ["up", "down", "right", "left"]
 
 
+def measure_time(repeat=1, number=1):
+    import timeit
+    from functools import wraps
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            def timed_func():
+                return func(*args, **kwargs)
+
+            times = timeit.repeat(timed_func, repeat=repeat, number=number)
+
+            total_time = sum(times)
+
+            logger.info(f"Funkce '{func.__name__}' byla volána {number}x v {repeat} opakováních.")
+            logger.info(f"Celkový čas: {total_time:.6f} sekund")
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+@measure_time()
 def get_screenshot(sct, name="", x=0, y=0, w=0, h=0, monitor_num=1, save=False):
     if x == 0 and y == 0 and w == 0 and h == 0:
         image = sct.grab(sct.monitors[monitor_num])
@@ -37,7 +65,7 @@ def get_screenshot(sct, name="", x=0, y=0, w=0, h=0, monitor_num=1, save=False):
 
     return image
 
-
+@measure_time()
 def min_max(image, templates: list) -> Sequence[int] | int:
     """Tries to find a template(needle) from image(hay)"""
     for template in templates:

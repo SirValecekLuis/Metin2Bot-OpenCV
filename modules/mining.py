@@ -1,3 +1,5 @@
+import logging
+
 import mss
 import time
 import cv2
@@ -7,6 +9,8 @@ from modules.funcs import get_screenshot, min_max, click_on_object_ingame, gathe
     random_movement
 
 VEIN_PICTURE = cv2.imread('screenshots/vein_picture.png')
+
+logger = logging.getLogger(__name__)
 
 
 def find_vein(sct) -> bool:
@@ -26,9 +30,9 @@ def find_vein(sct) -> bool:
 
 
 def start_mining() -> None:
-    print("STARTING and WAITING -> MINING")
+    logger.info("STARTING and WAITING -> MINING")
     time.sleep(5)
-    print("BOT STARTED")
+    logger.info("BOT STARTED")
     reset_camera_to_default()
     with mss.mss() as sct:
         while True:

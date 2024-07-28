@@ -1,3 +1,5 @@
+import logging
+
 import mss
 import time
 import cv2
@@ -8,6 +10,8 @@ from modules.funcs import get_screenshot, min_max, random_movement, click_on_obj
 
 METIN_PICTURE = cv2.imread('./screenshots/metin_picture.png')
 METIN_POINT_ON_MAP = cv2.imread('screenshots/white_pixel.png')
+
+logger = logging.getLogger(__name__)
 
 
 # def calculate_vector_to_metin(screenshot) -> tuple[int, int] | int:
@@ -44,7 +48,7 @@ METIN_POINT_ON_MAP = cv2.imread('screenshots/white_pixel.png')
 #         x_travel_time = travel_time_secs * x_fraction
 #         y_travel_time = travel_time_secs * y_fraction
 #
-#     print(distance, travel_time_secs, x_fraction, y_fraction, x_travel_time, y_travel_time)
+#     logger.info(distance, travel_time_secs, x_fraction, y_fraction, x_travel_time, y_travel_time)
 #
 #     movement_x = "right" if x <= 0 else "left"
 #     movement_y = "up" if y <= 0 else "down"
@@ -73,7 +77,7 @@ def find_and_destroy_metin(sct) -> bool:
         # # Get way where to go
         # vector = calculate_vector_to_metin(screenshot)
         #
-        # print(vector)
+        # logger.info(vector)
         #
         # # If white pixel was not found, that means there is no metin around on the map and will try to move randomly to find
         # if vector == -1:
@@ -118,9 +122,9 @@ def farm_metins():
     # TODO: try to get screenshot from the game even if the game is not on screen? I have no idea if I can send signals
     #   to the game or not
 
-    print("STARTING and WAITING -> FARMING")
+    logger.info("STARTING and WAITING -> FARMING")
     time.sleep(5)
-    print("BOT STARTED")
+    logger.info("BOT STARTED")
     metin_wait = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2) - 2)
     if metin_wait <= 0:
         metin_wait = 1

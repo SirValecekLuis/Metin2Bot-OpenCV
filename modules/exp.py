@@ -1,13 +1,15 @@
+import logging
 import time
 import pydirectinput
 
 from game_settings import VALUES
 
+logger = logging.getLogger(__name__)
 
 def exp():
-    print("BOT STARTED - WAIT")
+    logger.info("STARTING AND WAITING -> EXP")
     time.sleep(5)
-    print("BOT STARTED")
+    logger.info("BOT STARTED")
     if VALUES["HOLD_ALT"] == 1:
         pydirectinput.keyDown("alt")
 
