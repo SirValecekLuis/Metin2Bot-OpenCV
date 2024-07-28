@@ -3,8 +3,8 @@ import time
 import cv2
 
 from game_settings import VALUES
-from modules.farm_metins import get_screenshot, gather_items, random_movement, min_max, reset_camera_to_default, \
-    click_on_object_ingame
+from modules.funcs import get_screenshot, min_max, click_on_object_ingame, gather_items, reset_camera_to_default, \
+    random_movement
 
 VEIN_PICTURE = cv2.imread('screenshots/vein_picture.png')
 
@@ -19,7 +19,7 @@ def find_vein(sct) -> bool:
         return False
 
     # if was found, click on it
-    click_on_object_ingame(top_left, 20, 30)
+    click_on_object_ingame(top_left, 40, 20)
     time.sleep(VALUES["VEIN_WAIT_TIME"])
     gather_items()
     return True
