@@ -15,7 +15,6 @@ FISH_PIXEL = cv2.imread('screenshots/fish_pixel.png')
 CIRCLE_DIAM = 64
 
 logger = logging.getLogger(__name__)
-pydirectinput.PAUSE = 0.01
 TIME_BEFORE_REFRESH = 22
 
 def fish_window_pos(sct) -> Sequence[int] | int:
@@ -58,7 +57,7 @@ def catch_fish(sct, fishing_text_pos: Sequence[int]) -> None:
         normalized_pos = (fishing_text_pos_norm[0] + fish_in_circle[0], fishing_text_pos_norm[1] + fish_in_circle[1])
 
         # We found a fish, and we will click on the fish
-        click_on_object_ingame(normalized_pos)
+        click_on_object_ingame(normalized_pos, timer=0.05)
 
         # A small pause as the program is too fast
         time.sleep(0.3)

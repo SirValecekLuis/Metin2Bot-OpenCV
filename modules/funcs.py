@@ -8,6 +8,8 @@ import numpy as np
 import pydirectinput
 from PIL import Image
 
+pydirectinput.PAUSE = 0.01
+
 logger = logging.getLogger(__name__)
 
 MOVEMENT_LIST = ["up", "down", "right", "left"]
@@ -93,10 +95,10 @@ def gather_items() -> None:
         pydirectinput.press('z')  # Change this to Y if pickup does not work
 
 
-def click_on_object_ingame(top_left, offset_x=0, offset_y=0) -> None:
+def click_on_object_ingame(top_left, offset_x=0, offset_y=0, timer=0.1) -> None:
     top_left = (top_left[0] + offset_x, top_left[1] + offset_y)
     pydirectinput.moveTo(*top_left)
-    time.sleep(0.05)
+    time.sleep(timer)
     pydirectinput.click()
 
 
