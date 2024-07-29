@@ -23,7 +23,7 @@ def find_vein(sct) -> bool:
         return False
 
     # if was found, click on it
-    click_on_object_ingame(top_left, 40, 20)
+    click_on_object_ingame(top_left, 50, 20)
     time.sleep(VALUES["VEIN_WAIT_TIME"])
     gather_items()
     return True

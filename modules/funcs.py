@@ -96,6 +96,7 @@ def gather_items() -> None:
 def click_on_object_ingame(top_left, offset_x=0, offset_y=0) -> None:
     top_left = (top_left[0] + offset_x, top_left[1] + offset_y)
     pydirectinput.moveTo(*top_left)
+    time.sleep(0.05)
     pydirectinput.click()
 
 

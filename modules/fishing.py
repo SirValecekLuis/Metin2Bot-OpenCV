@@ -16,7 +16,7 @@ CIRCLE_DIAM = 64
 
 logger = logging.getLogger(__name__)
 pydirectinput.PAUSE = 0.01
-
+TIME_BEFORE_REFRESH = 22
 
 def fish_window_pos(sct) -> Sequence[int] | int:
     # Get screenshot and find where fish window is
@@ -61,7 +61,7 @@ def catch_fish(sct, fishing_text_pos: Sequence[int]) -> None:
         click_on_object_ingame(normalized_pos)
 
         # A small pause as the program is too fast
-        time.sleep(0.4)
+        time.sleep(0.3)
 
     logger.info("Fish window closed")
 
@@ -84,7 +84,7 @@ def start_fishing() -> None:
                 pydirectinput.press("space")
                 time.sleep(0.2)
                 # There is an unknown bug in the game when sometimes the window bugs itself and needs restart
-                if time.time() - last_time_fish > 15:
+                if time.time() - last_time_fish > TIME_BEFORE_REFRESH:
                     pydirectinput.press("enter")
                     # ? -> _ in CZ keyboard
                     # { -> / in CZ keyboard
