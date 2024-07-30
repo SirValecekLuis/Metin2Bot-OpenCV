@@ -5,30 +5,35 @@ import pydirectinput
 
 from game_settings import VALUES
 #
-IMAGE = cv2.imread('screenshots/test_screenshot4.png')
-# NEEDLE = cv2.imread('screenshots/white_pixel.png')
+IMAGE = cv2.imread('screenshots/test_screenshot6.png')
+NEEDLE = cv2.imread('screenshots/mining_failed.png')
 
-# # Apply NEEDLE matching
-# result = cv2.matchTemplate(IMAGE, NEEDLE, cv2.TM_SQDIFF_NORMED)
-#
-# # Min/Max values for locating the best match
-# min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-#
-# match_loc = min_loc
-#
-# # Draw a rectangle around the matched region
-# bottom_right = (match_loc[0] + NEEDLE.shape[1], match_loc[1] + NEEDLE.shape[0])
-# cv2.rectangle(IMAGE, match_loc, bottom_right, (0, 255, 0), 2)
-#
-# print(bottom_right)
+# Apply NEEDLE matching
+result = cv2.matchTemplate(IMAGE, NEEDLE, cv2.TM_SQDIFF_NORMED)
+
+# Min/Max values for locating the best match
+min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+
+match_loc = min_loc
+
+# Draw a rectangle around the matched region
+bottom_right = (match_loc[0] + NEEDLE.shape[1], match_loc[1] + NEEDLE.shape[0])
+cv2.rectangle(IMAGE, match_loc, bottom_right, (0, 255, 0), 2)
+
+cv2.imshow('IMAGE', IMAGE)
+cv2.waitKey(0)
+
+print(min_val)
+
+print(bottom_right)
 
 # Aplikace Cannyho detektoru hran
 
-edges = cv2.Canny(IMAGE, 550, 600)
-
-# Display the IMAGE with the match rectangle
-cv2.imshow('IMAGE', edges)
-cv2.waitKey(0)
+# edges = cv2.Canny(IMAGE, 550, 600)
+#
+# # Display the IMAGE with the match rectangle
+# cv2.imshow('IMAGE', edges)
+# cv2.waitKey(0)
 
 # from modules.farm_metins import get_screenshot
 # import mss

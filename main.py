@@ -1,7 +1,7 @@
 from modules.farm_metins import farm_metins
 from modules.exp import exp
-from modules.mining import start_mining
-from modules.fishing import start_fishing
+from modules.mining import MiningBot
+from modules.fishing import FishingBot
 from log_config import setup_logger
 
 
@@ -22,9 +22,11 @@ def main():
     elif choice == 2:
         exp()
     elif choice == 3:
-        start_mining()
+        bot = MiningBot()
+        bot.start_mining()
     elif choice == 4:
-        start_fishing()
+        bot = FishingBot()
+        bot.start_fishing()
 
 
 if __name__ == "__main__":

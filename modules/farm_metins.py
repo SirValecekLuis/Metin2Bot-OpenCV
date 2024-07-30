@@ -5,7 +5,7 @@ import time
 import cv2
 
 from game_settings import VALUES
-from modules.funcs import get_screenshot, min_max, random_movement, click_on_object_ingame, reset_camera_to_default, \
+from modules.funcs import take_screenshot, min_max, random_movement, click, reset_camera_to_default, \
     gather_items
 
 METIN_PICTURE = cv2.imread('screenshots/metin_picture.png')
@@ -67,14 +67,14 @@ logger = logging.getLogger(__name__)
 def find_and_destroy_metin(sct) -> bool:
     """Tries to click on the metin based on coordinates from the screenshot."""
 
-    screenshot = get_screenshot(sct)
+    screenshot = take_screenshot(sct)
     top_left = min_max(screenshot, [METIN_PICTURE])
 
     if top_left == -1:
         return False
 
     # When the metin is found, we will click on it, but check if we didn't click in the forbidden area
-    if click_on_object_ingame(top_left, 30, 50) is False:
+    if click(top_left, 30, 50) is False:
         return False
 
     # Say that the metin was clicked successfully

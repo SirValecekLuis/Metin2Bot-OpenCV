@@ -13,22 +13,26 @@ pydirectinput.PAUSE = 0.01
 logger = logging.getLogger(__name__)
 
 MOVEMENT_LIST = ["up", "down", "right", "left"]
-class ForbiddenArea:
-    def __init__(self, top_x: int, top_y: int, bot_x: int, bot_y):
+
+
+class Area:
+    def __init__(self, top_x: int, top_y: int, bot_x: int, bot_y, direction: str):
         self.top_x = top_x
         self.top_y = top_y
         self.bot_x = bot_x
         self.bot_y = bot_y
+        self.direction = direction
 
     def is_click_in_area(self, coords: tuple[int, int]) -> bool:
         """If click is in forbidden area, returns True, otherwise False"""
         return self.top_x <= coords[0] <= self.bot_x and self.top_y <= coords[1] <= self.bot_y
 
 
-TOP_AREA = ForbiddenArea(0, 0, 1920, 100)
-RIGHT_AREA = ForbiddenArea(1645, 0, 1920, 1080)
-BOTTOM_AREA = ForbiddenArea(0, 930, 1920, 1080)
-AREAS = [TOP_AREA, RIGHT_AREA, BOTTOM_AREA]
+TOP_AREA = Area(0, 0, 1920, 100, "up")
+RIGHT_AREA = Area(1645, 0, 1920, 1080, "right")
+BOTTOM_AREA = Area(0, 930, 1920, 1080, "down")
+FORBIDDEN_AREAS = [TOP_AREA, RIGHT_AREA, BOTTOM_AREA]
+
 
 def measure_time(repeat=1, number=1):
     import timeit
@@ -54,7 +58,7 @@ def measure_time(repeat=1, number=1):
     return decorator
 
 
-def get_screenshot(sct, x=0, y=0, w=0, h=0, monitor_num=1, save=False, name=""):
+def take_screenshot(sct, x=0, y=0, w=0, h=0, monitor_num=1, save=False, name=""):
     if x == 0 and y == 0 and w == 0 and h == 0:
         image = sct.grab(sct.monitors[monitor_num])
         image = cv2.cvtColor(np.array(image), cv2.COLOR_BGRA2BGR)
@@ -104,13 +108,25 @@ def random_movement(pause: float, times: int) -> None:
     return
 
 
+def move(direction: str, pause: float) -> bool:
+    try:
+        pydirectinput.keyDown(direction)
+        time.sleep(pause)
+        pydirectinput.keyUp(direction)
+    except Exception as e:
+        logger.log(f"Movement not successful, exception {e}")
+        return False
+
+    return True
+
+
 def gather_items() -> None:
     """Gathers item on the ground by pressing "y" in the game which is "z" in pydirectinput."""
     for _ in range(random.randrange(2, 5)):
         pydirectinput.press('z')  # Change this to Y if pickup does not work
 
 
-def click_on_object_ingame(top_left, offset_x=0, offset_y=0, timer=0.1, can_click_in_forbidden_area=False) -> bool:
+def click(top_left, offset_x=0, offset_y=0, timer=0.1, can_click_in_forbidden_area=False) -> bool:
     """
     click on screen at x, y position
     :param top_left: tuple (x, y)
@@ -118,21 +134,23 @@ def click_on_object_ingame(top_left, offset_x=0, offset_y=0, timer=0.1, can_clic
     :param offset_y: move + y pixels
     :param timer: time between moving mouse and clicking, should not be lower than 0.05 otherwise causes problems
     :param can_click_in_forbidden_area: When True then the click can click whenever it wants
-    :return: False if click was not done, True if clicked
+    :return: False if click was not done, True if clicked,
+        if False it will move towards the thing it was supposed to click
     """
     top_left = (top_left[0] + offset_x, top_left[1] + offset_y)
 
     # If the click is somewhere where we said we do not want to click, then we will refuse such a click.
     if can_click_in_forbidden_area is False:
-        for area in AREAS:
+        for area in FORBIDDEN_AREAS:
             if area.is_click_in_area(top_left):
                 logger.info(f"Click in forbidden area {area.top_x, area.top_y, area.bot_x, area.bot_y}")
+                move(area.direction, 0.2)
                 return False
 
     pydirectinput.moveTo(*top_left, attempt_pixel_perfect=True, duration=0.06)
     # If there is no timer, then the moveTo is not fast enough to move the mouse, so it may click too early
     time.sleep(timer)
-    pydirectinput.click(clicks=1) # Sometimes performs double click?
+    pydirectinput.click(clicks=1)  # Sometimes performs double click?
 
     return True
 
@@ -143,6 +161,7 @@ def reset_camera_to_default() -> None:
     time.sleep(3)
     pydirectinput.keyUp("g")
     pydirectinput.keyUp("f")
+
 
 def print_mouse_pos() -> None:
     x, y = pydirectinput.position()
