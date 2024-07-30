@@ -56,8 +56,8 @@ def catch_fish(sct, fishing_text_pos: Sequence[int]) -> None:
         # Position of fish
         normalized_pos = (fishing_text_pos_norm[0] + fish_in_circle[0], fishing_text_pos_norm[1] + fish_in_circle[1])
 
-        # We found a fish, and we will click on the fish
-        click_on_object_ingame(normalized_pos, timer=0.05)
+        # We found a fish, and we will click on the fish, we do not need to check forbidden areas
+        click_on_object_ingame(normalized_pos, timer=0.05, can_click_in_forbidden_area=True)
 
         # A small pause as the program is too fast
         time.sleep(0.3)

@@ -16,14 +16,16 @@ logger = logging.getLogger(__name__)
 def find_vein(sct) -> bool:
     """Tries to find a vein and clicks on it"""
     screenshot = get_screenshot(sct)
-    top_left = min_max(screenshot, [VEIN_PICTURE])
+    top_left = min_max(screenshot, [VEIN_PICTURE], threshold=0.15)
 
     # If vein was not found
     if top_left == -1:
         return False
 
-    # if was found, click on it
-    click_on_object_ingame(top_left, 50, 20)
+    # if was found, click on it, but we need to check if we didn't click in the forbidden area
+    if click_on_object_ingame(top_left, 50, 20) is False:
+        return False
+
     time.sleep(VALUES["VEIN_WAIT_TIME"])
     gather_items()
     return True

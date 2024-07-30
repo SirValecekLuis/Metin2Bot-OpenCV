@@ -11,7 +11,6 @@ from modules.funcs import get_screenshot, min_max, random_movement, click_on_obj
 METIN_PICTURE = cv2.imread('screenshots/metin_picture.png')
 METIN_POINT_ON_MAP = cv2.imread('screenshots/white_pixel.png')
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -71,44 +70,15 @@ def find_and_destroy_metin(sct) -> bool:
     screenshot = get_screenshot(sct)
     top_left = min_max(screenshot, [METIN_PICTURE])
 
-    # If we failed to find a metin on the place, we will try to move
-    # Otherwise click on metin and destroy it
     if top_left == -1:
+        return False
 
-        # # Get way where to go
-        # vector = calculate_vector_to_metin(screenshot)
-        #
-        # logger.info(vector)
-        #
-        # # If white pixel was not found, that means there is no metin around on the map and will try to move randomly to find
-        # if vector == -1:
-        #     return False
-        #
-        # # When we found a vector where the metin is, we will move
-        # move_to_metin_based_on_vector(vector)
+    # When the metin is found, we will click on it, but check if we didn't click in the forbidden area
+    if click_on_object_ingame(top_left, 30, 50) is False:
+        return False
 
-        # TODO: fix this, this is temporary to work
-        random_movement(0.3, 1)
-
-        # After moving, we will try to again find a metin
-        screenshot = get_screenshot(sct)
-        top_left = min_max(screenshot, [METIN_PICTURE])
-
-        if top_left == -1:
-            return False
-
-        # When the metin is found, we will click on it
-        click_on_object_ingame(top_left, 30, 50)
-
-        # Say that the metin was clicked successfully
-        return True
-
-    else:
-        # When the metin is found, we will click on it
-        click_on_object_ingame(top_left, 30, 50)
-
-        # Say that the metin was clicked successfully
-        return True
+    # Say that the metin was clicked successfully
+    return True
 
 
 def check_if_clicked():
