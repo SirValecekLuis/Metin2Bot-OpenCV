@@ -8,9 +8,11 @@ for installing pydirectinput use
 
 pip install pydirectinput-rgx
 
+
+Fishing script in work:
+https://github.com/user-attachments/assets/c9184306-b187-48e4-a14f-7739c90bd791
+
+
 Thanks https://github.com/ReggX/pydirectinput_rgx
 
-
 SirValecekLuis
-
-
