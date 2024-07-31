@@ -1,3 +1,4 @@
+import math
 import random
 import logging
 import time
@@ -7,6 +8,8 @@ import cv2
 import numpy as np
 import pydirectinput
 from PIL import Image
+from mss import mss
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 pydirectinput.PAUSE = 0.01
 
@@ -23,12 +26,27 @@ class Area:
         self.bot_y = bot_y
         self.direction = direction
 
+        self.sct = mss()
+        self.monitor = self.sct.monitors[1]
+        self.screen_width = self.monitor["width"]
+        self.screen_height = self.monitor["height"]
+
     def is_click_in_area(self, coords: tuple[int, int]) -> bool:
-        """If click is in forbidden area, returns True, otherwise False"""
-        return self.top_x <= coords[0] <= self.bot_x and self.top_y <= coords[1] <= self.bot_y
+        """
+        If click is in forbidden area or outside screen boundaries, returns True, otherwise False
+        """
+        x, y = coords
+
+        if x < 0 or x >= self.screen_width or y < 0 or y >= self.screen_height:
+            return True  # Out of screen
+
+        if self.top_x <= x <= self.bot_x and self.top_y <= y <= self.bot_y:
+            return True  # In forbidden area
+
+        return False  # Click is valid
 
 
-TOP_AREA = Area(0, 0, 1920, 100, "up")
+TOP_AREA = Area(0, 0, 400, 130, "up")
 RIGHT_AREA = Area(1645, 0, 1920, 1080, "right")
 BOTTOM_AREA = Area(0, 930, 1920, 1080, "down")
 FORBIDDEN_AREAS = [TOP_AREA, RIGHT_AREA, BOTTOM_AREA]
@@ -84,7 +102,7 @@ def take_screenshot(sct, x=0, y=0, w=0, h=0, monitor_num=1, save=False, name="")
     return image
 
 
-def min_max(hay: np.ndarray, needles: list, threshold=0.12) -> Sequence[int] | int:
+def min_max(hay: np.ndarray, needles: list[np.ndarray], threshold=0.12) -> Sequence[int] | int:
     """Tries to find a template(needle) from image(hay)"""
     for template in needles:
         res = cv2.matchTemplate(hay, template, cv2.TM_SQDIFF_NORMED)
@@ -94,6 +112,60 @@ def min_max(hay: np.ndarray, needles: list, threshold=0.12) -> Sequence[int] | i
             return min_loc
 
     return -1
+
+
+def process_template(hay, template, threshold):
+    res = cv2.matchTemplate(hay, template, cv2.TM_SQDIFF_NORMED)
+    locations = np.where(res <= threshold)
+    return [(int(x), int(y), float(res[y, x])) for y, x in zip(*locations)]
+
+
+def min_max_multiple(hay: np.ndarray, needles: list[np.ndarray], threshold=0.12, max_results=10) -> list[tuple[
+    int, int, float]] | int:
+    """Finds multiple matches of templates in the image using multithreading."""
+
+    all_matches = []
+
+    with ThreadPoolExecutor() as executor:
+        future_to_template = {executor.submit(process_template, hay, template, threshold): template for template
+                              in needles}
+        for future in as_completed(future_to_template):
+            all_matches.extend(future.result())
+
+    if not all_matches:
+        return -1
+
+    # Sort by similarity (ascending, because TM_SQDIFF_NORMED - lower is better)
+    all_matches.sort(key=lambda x: x[2])
+
+    return all_matches[:max_results]
+
+
+def distance_from_center(match: tuple[int, int, float], center_x: int, center_y: int) -> float:
+    """Calculates distance from a center of player"""
+    x, y, _ = match
+    return math.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+
+
+def visualize_matches(screenshot: np.ndarray, matches: list[tuple[int, int, float]],
+                      template_size: tuple[int, int]) -> None:
+    """
+    Draws rectangles around found matches on the screenshot. HELPFUL FOR DEBUGGING
+    :param screenshot: Screenshot where draw found matches from min_max_multiple
+    :param matches: All matches found on the screenshot from min_max_multiple
+    :param template_size: Needle.shape[:2][::-1] -> all shapes have the same size prediction
+    :return: None
+    """
+    result = screenshot.copy()
+    for (x, y, score) in matches:
+        top_left = (x, y)
+        bottom_right = (x + template_size[0], y + template_size[1])
+        cv2.rectangle(result, top_left, bottom_right, (0, 255, 0), 2)
+        cv2.putText(result, f"{score:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+    cv2.imshow('Results', result)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def random_movement(pause: float, times: int) -> None:
@@ -114,7 +186,7 @@ def move(direction: str, pause: float) -> bool:
         time.sleep(pause)
         pydirectinput.keyUp(direction)
     except Exception as e:
-        logger.log(f"Movement not successful, exception {e}")
+        logger.info(f"Movement not successful, exception {e}")
         return False
 
     return True
