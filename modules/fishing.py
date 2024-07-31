@@ -14,20 +14,22 @@ class FishingBot:
         self.FISH_PIXEL = cv2.imread('screenshots/fish_pixel.png')
         self.CIRCLE_DIAM = 64
         self.logger = logging.getLogger(__name__)
-        self.TIME_BEFORE_REFRESH = 22
+        self.TIME_BEFORE_REFRESH = 30
+        self.sct = None
 
-    def fish_window_pos(self, sct) -> Sequence[int] | int:
+    def get_fish_window_pos(self) -> Sequence[int] | int:
         # Get screenshot and find where fish window is
-        screenshot = take_screenshot(sct)
+        screenshot = take_screenshot(self.sct)
         fishing_text = min_max(screenshot, [self.FISHING_TEXT])
         return fishing_text
 
-    def catch_fish(self, sct, fishing_text_pos: Sequence[int]) -> None:
+    def catch_fish(self, fishing_text_pos: Sequence[int]) -> None:
         """This function will try to get a screenshot and catch a fish."""
 
         while True:
             # We will look if the window is still opened and if not, we can think we have caught
-            new_screenshot = take_screenshot(sct, fishing_text_pos[0], fishing_text_pos[1], self.FISHING_TEXT.shape[1],
+            new_screenshot = take_screenshot(self.sct, fishing_text_pos[0], fishing_text_pos[1],
+                                             self.FISHING_TEXT.shape[1],
                                              self.FISHING_TEXT.shape[0])
 
             # We will screenshot the place where "Fishing" text should be, if is not there then window closed
@@ -42,7 +44,8 @@ class FishingBot:
                 fishing_text_pos[0] + 16 - self.CIRCLE_DIAM, fishing_text_pos[1] + 136 - self.CIRCLE_DIAM)
 
             # Get a screenshot and find where is fish
-            screenshot = take_screenshot(sct, fishing_text_pos_norm[0], fishing_text_pos_norm[1], self.CIRCLE_DIAM * 2,
+            screenshot = take_screenshot(self.sct, fishing_text_pos_norm[0], fishing_text_pos_norm[1],
+                                         self.CIRCLE_DIAM * 2,
                                          self.CIRCLE_DIAM * 2)
 
             # Try if there is a fish in the circle
@@ -64,36 +67,46 @@ class FishingBot:
 
         self.logger.info("Fish window closed")
 
+    def main_fishing_loop(self) -> None:
+        while True:
+            last_time_fish = time.time()
+
+            # Try to catch a fish
+            pydirectinput.press("space", presses=5)
+
+            # Try to find if a window opened
+            fish_window = self.get_fish_window_pos()
+
+            # Looking until a window is opened
+            while fish_window == -1:
+                fish_window = self.get_fish_window_pos()
+                pydirectinput.press("space")
+                time.sleep(0.5)
+
+                # There is an unknown bug in the game when sometimes the window bugs itself and needs restart
+                if time.time() - last_time_fish > self.TIME_BEFORE_REFRESH:
+                    pydirectinput.press("enter")
+                    # ? -> _ in CZ keyboard
+                    # { -> / in CZ keyboard
+                    pydirectinput.write("{", auto_shift=True)
+                    pydirectinput.write("rewarp")
+                    pydirectinput.write("?", auto_shift=True)
+                    pydirectinput.write("user")
+                    pydirectinput.press("enter")
+                    time.sleep(15)
+                    last_time_fish = time.time()
+
+            # Try to catch a fish when I detect an opened window
+            self.logger.info("fish window opened, trying to catch a fish")
+            self.catch_fish(fish_window)
+
+            time.sleep(VALUES["FISHING_WAIT_TIME"])
+
     def start_fishing(self) -> None:
         self.logger.info("STARTING and WAITING -> FISHING")
         time.sleep(5)
         self.logger.info("BOT STARTED")
 
         with mss.mss() as sct:
-            last_time_fish = time.time()
-            while True:
-                # Try to catch a fish
-                pydirectinput.press("space", presses=5)
-                # Try to find if a window opened
-                fish_window = self.fish_window_pos(sct)
-                # Looking until a window is opened
-                while fish_window == -1:
-                    fish_window = self.fish_window_pos(sct)
-                    pydirectinput.press("space")
-                    time.sleep(0.2)
-                    # There is an unknown bug in the game when sometimes the window bugs itself and needs restart
-                    if time.time() - last_time_fish > self.TIME_BEFORE_REFRESH:
-                        pydirectinput.press("enter")
-                        # ? -> _ in CZ keyboard
-                        # { -> / in CZ keyboard
-                        pydirectinput.write("{", auto_shift=True)
-                        pydirectinput.write("rewarp")
-                        pydirectinput.write("?", auto_shift=True)
-                        pydirectinput.write("user")
-                        pydirectinput.press("enter")
-                        last_time_fish = time.time()
-                # Try to catch a fish when I detect an opened window
-                self.logger.info("fish window opened, trying to catch a fish")
-                self.catch_fish(sct, fish_window)
-                time.sleep(VALUES["FISHING_WAIT_TIME"])
-                last_time_fish = time.time()
+            self.sct = sct
+            self.main_fishing_loop()
