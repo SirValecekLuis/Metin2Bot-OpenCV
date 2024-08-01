@@ -1,119 +1,99 @@
 import logging
-
-import mss
 import time
 import cv2
+import mss
 
 from game_settings import VALUES
-from modules.funcs import take_screenshot, min_max, random_movement, click, reset_camera_to_default, \
-    gather_items
-
-METIN_PICTURE = cv2.imread('screenshots/metin_picture.png')
-METIN_POINT_ON_MAP = cv2.imread('screenshots/white_pixel.png')
-
-logger = logging.getLogger(__name__)
+from modules.funcs import take_screenshot, random_movement, click, reset_camera_to_default, \
+    gather_items, min_max_multiple, distance_from_center, min_max
 
 
-# def calculate_vector_to_metin(screenshot) -> tuple[int, int] | int:
-#     min_loc = min_max(screenshot, [METIN_POINT_ON_MAP])
-#
-#     if min_loc == -1:
-#         return -1
-#
-#     vector = (min_loc[0] - VALUES["MINIMAP_CURSOR_X"], min_loc[1] - VALUES["MINIMAP_CURSOR_Y"])
-#     return vector
+class MetinFarmer:
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.METIN_PICTURE = cv2.imread('screenshots/metin_picture3.png')
+        self.METIN_HP_BAR = cv2.imread('screenshots/metin_hp_bar.png')
+        self.sct = mss.mss()
+        self.metin_wait = self._calculate_metin_wait()
 
+    @property
+    def monitor_width(self) -> int:
+        if self.sct is not None:
+            return self.sct.monitors[1]["width"]
+        return 0
 
-# def move_to_metin_based_on_vector(vector) -> None:
-#     x, y = vector
-#     distance = abs(x) + abs(y)
-#     travel_time_secs = distance / VALUES["MOVEMENT_SPEED"]
-#
-#     # TODO: Fix this
-#     if y == 0:
-#         x_fraction = 1
-#     elif abs(x) >= abs(y):
-#         x_fraction = abs(y / x)
-#     else:
-#         x_fraction = abs(x / y)
-#
-#     y_fraction = 1 - x_fraction if x_fraction != 1 else 1
-#
-#     # If the vector is 45 °, then it is 1/2 time going x and 1/2 time going y
-#     # else get a fraction of how much time travel x and y
-#     if x_fraction == 1 and y_fraction == 1:
-#         x_travel_time = travel_time_secs / 0.5
-#         y_travel_time = x_travel_time
-#     else:
-#         x_travel_time = travel_time_secs * x_fraction
-#         y_travel_time = travel_time_secs * y_fraction
-#
-#     logger.info(distance, travel_time_secs, x_fraction, y_fraction, x_travel_time, y_travel_time)
-#
-#     movement_x = "right" if x <= 0 else "left"
-#     movement_y = "up" if y <= 0 else "down"
-#
-#     # Move x axis for x_travel_time
-#     pydirectinput.keyDown(movement_x)
-#     time.sleep(x_travel_time)
-#     pydirectinput.keyUp(movement_x)
-#
-#     # Move y axis for y_travel_time
-#     pydirectinput.keyDown(movement_y)
-#     time.sleep(y_travel_time)
-#     pydirectinput.keyUp(movement_y)
+    @property
+    def monitor_height(self) -> int:
+        if self.sct is not None:
+            return self.sct.monitors[1]["height"]
+        return 0
 
+    def _calculate_metin_wait(self) -> int:
+        wait_time = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2) + 2)
+        return max(wait_time, 1)
 
-def find_and_destroy_metin(sct) -> bool:
-    """Tries to click on the metin based on coordinates from the screenshot."""
+    def find_and_destroy_metin(self) -> None:
+        """Tries to click on the metin based on coordinates from the screenshot."""
+        screenshot = take_screenshot(self.sct)
+        matches = min_max_multiple(screenshot, [self.METIN_PICTURE], threshold=0.12)
 
-    screenshot = take_screenshot(sct)
-    top_left = min_max(screenshot, [METIN_PICTURE])
+        if matches == -1:
+            self.logger.info("Metin not found")
+            random_movement()
+            return
 
-    if top_left == -1:
-        return False
+        center_x = self.monitor_width // 2
+        center_y = self.monitor_height // 2
 
-    # When the metin is found, we will click on it, but check if we didn't click in the forbidden area
-    if click(top_left, 30, 50) is False:
-        return False
+        closest_match = min(matches, key=lambda match: distance_from_center(match, center_x, center_y))
 
-    # Say that the metin was clicked successfully
-    return True
+        # When the metin is found, we will click on it, but check if we didn't click in the forbidden area
+        if click(closest_match, 30, 50):
+            # Wait a little, so we can click in the game on the metin and correctly check if the HP bar is there or not
+            time.sleep(0.5)
+            # If metin is alive, we know we clicked on one
+            if self.is_metin_alive():
+                # We will be waiting till the metin is alive, and once it is not we will gather dropped items and go on
+                click_time = time.time()
+                while self.is_metin_alive():
+                    time.sleep(0.2)
+                    if time.time() - click_time > self.metin_wait * 1.5:
+                        self.logger.info("Stucked? Random moving")
+                        # If metin is not destroyed in long time prob stuck the character
+                        random_movement(0.3, 1)
+                        return
+                else:
+                    self.logger.info("Metin destroyed")
+                    gather_items()
+                    time.sleep(0.5)
+                    return
 
+        self.logger.info("Metin miss clicked")
+        # We will wait a bit if we failed to click a metin because a character is probably moving towards the
+        #   miss clicked metin
+        time.sleep(0.3)
+        gather_items()
 
-def check_if_clicked():
-    # TODO: implement this and check if the metin is clicked on and if yes then continue if not then try to click again
-    #   It would be nice to check when the metin is destroyed (the black bar from metin disappears and by that we know
-    #   the metin is destroyed)
-    ...
+    def is_metin_alive(self) -> bool:
+        """Determines if metin is being clicked/destroyed or not."""
+        screenshot = take_screenshot(self.sct, 670, 0, 300, 120)
+        top_left = min_max(screenshot, [self.METIN_HP_BAR], threshold=0.16)
 
+        if top_left == -1:
+            return False
 
-def farm_metins():
-    # TODO: only do a job if bot is selected, probably ask OS what window is picked and if not metin, then do not run
-    # TODO: try to get screenshot from the game even if the game is not on screen? I have no idea if I can send signals
-    #   to the game or not
+        return True
 
-    logger.info("STARTING and WAITING -> FARMING")
-    time.sleep(5)
-    logger.info("BOT STARTED")
-    metin_wait = round(VALUES["HP_METIN"] / (VALUES["DAMAGE_METIN"] * 2) - 2)
-    if metin_wait <= 0:
-        metin_wait = 1
-    # This is to set up camera straight up above you and zoom out max
-    reset_camera_to_default()
+    def farm_metins(self) -> None:
+        self.logger.info("STARTING and WAITING -> FARMING")
+        time.sleep(5)
+        self.logger.info("BOT STARTED")
 
-    with mss.mss() as sct:
+        # This is to set up camera straight up above you and zoom out max
+        reset_camera_to_default()
+
         while True:
-            while find_and_destroy_metin(sct) is False:
-                random_movement(0.3, 1)
+            self.find_and_destroy_metin()
 
-            # time.sleep(0.5)
-            # gather_items()  # Sometimes metin is already destroyed
-            # check_if_clicked()
-            # click_on_metin(sct)
-            # time.sleep(1)
-            gather_items()  # Sometimes metin is already destroyed
-            random_movement(0.3, 2)  # When 2 metins are behind each other, this helps
-
-            time.sleep(metin_wait)
-            gather_items()
+    def run(self):
+        self.farm_metins()

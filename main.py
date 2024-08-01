@@ -1,4 +1,4 @@
-from modules.farm_metins import farm_metins
+from modules.farm_metins import MetinFarmer
 from modules.exp import exp
 from modules.mining import MiningBot
 from modules.fishing import FishingBot
@@ -18,7 +18,8 @@ def take_choice():
 def main():
     choice = take_choice()
     if choice == 1:
-        farm_metins()
+        farmer = MetinFarmer()
+        farmer.run()
     elif choice == 2:
         exp()
     elif choice == 3:

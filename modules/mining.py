@@ -21,7 +21,7 @@ class MiningBot:
         self.logger = logging.getLogger(__name__)
         self.failed_previously = False
         self.stopped_previously = False
-        self.sct = None
+        self.sct = mss.mss()
 
     @property
     def monitor_width(self) -> int:
@@ -77,7 +77,7 @@ class MiningBot:
         :return: (x, y) if found, -1 if not
         """
         screenshot = take_screenshot(self.sct)
-        matches = min_max_multiple(screenshot, self.NEEDLES, threshold=0.2)
+        matches = min_max_multiple(screenshot, self.NEEDLES, threshold=0.36)
 
         if matches == -1:
             return -1
@@ -109,7 +109,6 @@ class MiningBot:
         self.logger.info("BOT STARTED")
 
         reset_camera_to_default()
-        with mss.mss() as sct:
-            self.sct = sct
-            while True:
-                self.mine_vein()
+
+        while True:
+            self.mine_vein()

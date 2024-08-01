@@ -168,7 +168,7 @@ def visualize_matches(screenshot: np.ndarray, matches: list[tuple[int, int, floa
     cv2.destroyAllWindows()
 
 
-def random_movement(pause: float, times: int) -> None:
+def random_movement(pause=0.3, times=1) -> None:
     """Will move randomly to ensure chaos and therefore unstuck a player"""
     for i in range(times):
         movement = MOVEMENT_LIST[random.randint(0, 3)]

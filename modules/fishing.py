@@ -14,8 +14,9 @@ class FishingBot:
         self.FISH_PIXEL = cv2.imread('screenshots/fish_pixel.png')
         self.CIRCLE_DIAM = 64
         self.logger = logging.getLogger(__name__)
-        self.TIME_BEFORE_REFRESH = 30
-        self.sct = None
+        self.TIME_BEFORE_REFRESH = 15
+        self.TIME_AFTER_REFRESH = 20
+        self.sct = mss.mss()
 
     def get_fish_window_pos(self) -> Sequence[int] | int:
         # Get screenshot and find where fish window is
@@ -93,7 +94,8 @@ class FishingBot:
                     pydirectinput.write("?", auto_shift=True)
                     pydirectinput.write("user")
                     pydirectinput.press("enter")
-                    time.sleep(15)
+                    self.logger.info("Refreshing, bug appeared")
+                    time.sleep(self.TIME_AFTER_REFRESH)
                     last_time_fish = time.time()
 
             # Try to catch a fish when I detect an opened window
@@ -107,6 +109,4 @@ class FishingBot:
         time.sleep(5)
         self.logger.info("BOT STARTED")
 
-        with mss.mss() as sct:
-            self.sct = sct
-            self.main_fishing_loop()
+        self.main_fishing_loop()
