@@ -1,5 +1,5 @@
 from modules.farm_metins import MetinFarmer
-from modules.exp import exp
+from modules.exp import ExpBot
 from modules.mining import MiningBot
 from modules.fishing import FishingBot
 from log_config import setup_logger
@@ -18,16 +18,17 @@ def take_choice():
 def main():
     choice = take_choice()
     if choice == 1:
-        farmer = MetinFarmer()
-        farmer.run()
+        bot = MetinFarmer()
+        bot.run()
     elif choice == 2:
-        exp()
+        bot = ExpBot()
+        bot.run()
     elif choice == 3:
         bot = MiningBot()
-        bot.start_mining()
+        bot.run()
     elif choice == 4:
         bot = FishingBot()
-        bot.start_fishing()
+        bot.run()
 
 
 if __name__ == "__main__":
