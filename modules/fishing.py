@@ -3,14 +3,14 @@ from typing import Sequence
 import cv2
 import time
 from game_utils import GameUtils
-from game_classes import Monitor, Keyboard
+from game_classes import Monitor, GameState
 from game_settings import VALUES
 
 
-class FishingBot(Monitor, Keyboard):
+class FishingBot(Monitor, GameState):
     def __init__(self):
         Monitor.__init__(self)
-        Keyboard.__init__(self)
+        GameState.__init__(self)
 
         self.FISHING_TEXT = cv2.imread('screenshots/fish_window_text.png')
         self.FISH_PIXEL = cv2.imread('screenshots/fish_pixel.png')
@@ -29,7 +29,7 @@ class FishingBot(Monitor, Keyboard):
         """This function will try to get a screenshot and catch a fish."""
 
         while True:
-            if self.bot_is_running is False:
+            if GameState.bot_is_running is False:
                 return
 
             # We will look if the window is still opened and if not, we can think we have caught
@@ -76,7 +76,7 @@ class FishingBot(Monitor, Keyboard):
 
     def main_loop(self) -> None:
         while True:
-            if self.bot_is_running is False:
+            if GameState.bot_is_running is False:
                 time.sleep(0.5)
                 continue
 
@@ -90,7 +90,7 @@ class FishingBot(Monitor, Keyboard):
 
             # Looking until a window is opened
             while fish_window == -1:
-                if self.bot_is_running is False:
+                if GameState.bot_is_running is False:
                     break
 
                 fish_window = self.get_fish_window_pos()

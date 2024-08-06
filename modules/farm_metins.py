@@ -4,13 +4,13 @@ import cv2
 
 from game_settings import VALUES
 from game_utils import GameUtils
-from game_classes import Monitor, Keyboard
+from game_classes import Monitor, GameState
 
 
-class MetinFarmer(Monitor, Keyboard):
+class MetinFarmer(Monitor, GameState):
     def __init__(self):
         Monitor.__init__(self)
-        Keyboard.__init__(self)
+        GameState.__init__(self)
 
         self.logger = logging.getLogger(__name__)
         self.METIN_PICTURE = cv2.imread('screenshots/metin_picture3.png')
@@ -25,7 +25,7 @@ class MetinFarmer(Monitor, Keyboard):
         """Tries to click on the metin based on coordinates from the screenshot."""
 
         while True:
-            if self.bot_is_running is False:
+            if GameState.bot_is_running is False:
                 time.sleep(0.5)
                 continue
 
@@ -51,7 +51,7 @@ class MetinFarmer(Monitor, Keyboard):
                     # We will be waiting till the metin is alive, and once it is not we will gather dropped items and go on
                     click_time = time.time()
                     while self.is_metin_alive():
-                        if self.bot_is_running is False:
+                        if GameState.bot_is_running is False:
                             break
 
                         time.sleep(0.2)
@@ -86,7 +86,7 @@ class MetinFarmer(Monitor, Keyboard):
         self.logger.info("STARTING and WAITING -> FARMING")
 
         while True:
-            if self.bot_is_running:
+            if GameState.bot_is_running:
                 GameUtils.reset_camera_to_default()
                 break
             time.sleep(0.5)

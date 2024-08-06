@@ -34,21 +34,23 @@ class Area:
         return False  # Click is valid
 
 
-class Keyboard:
+class GameState:
+    bot_is_running = False
     def __init__(self):
-        self.bot_is_running = False
         keyboard.add_hotkey("F11", self.start)
         keyboard.add_hotkey("F12", self.pause)
 
-    def start(self):
-        if self.bot_is_running is False:
+    @staticmethod
+    def start():
+        if GameState.bot_is_running is False:
             logger.info("Bot unpaused")
-            self.bot_is_running = True
+            GameState.bot_is_running = True
 
-    def pause(self):
-        if self.bot_is_running is True:
+    @staticmethod
+    def pause():
+        if GameState.bot_is_running is True:
             logger.info("Bot paused")
-            self.bot_is_running = False
+            GameState.bot_is_running = False
 
 
 class Monitor:

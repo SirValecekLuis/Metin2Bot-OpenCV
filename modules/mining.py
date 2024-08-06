@@ -6,13 +6,13 @@ import pydirectinput
 
 from game_settings import VALUES
 from game_utils import GameUtils
-from game_classes import Monitor, Keyboard
+from game_classes import Monitor, GameState
 
 
-class MiningBot(Monitor, Keyboard):
+class MiningBot(Monitor, GameState):
     def __init__(self):
         Monitor.__init__(self)
-        Keyboard.__init__(self)
+        GameState.__init__(self)
 
         self.VEIN_PICTURE = cv2.imread('screenshots/vein.png')
         self.NEEDLES = [self.VEIN_PICTURE]
@@ -28,7 +28,7 @@ class MiningBot(Monitor, Keyboard):
         time_start = time.time()
 
         while True:
-            if self.bot_is_running is False:
+            if GameState.bot_is_running is False:
                 return False
 
             if time.time() - time_start > VALUES["VEIN_WAIT_TIME"]:
@@ -83,7 +83,7 @@ class MiningBot(Monitor, Keyboard):
 
     def main_loop(self) -> None:
         while True:
-            if self.bot_is_running is False:
+            if GameState.bot_is_running is False:
                 time.sleep(0.5)
                 continue
 
@@ -104,7 +104,7 @@ class MiningBot(Monitor, Keyboard):
         self.logger.info("STARTING and WAITING -> MINING")
 
         while True:
-            if self.bot_is_running:
+            if GameState.bot_is_running:
                 GameUtils.reset_camera_to_default()
                 break
             time.sleep(0.5)
