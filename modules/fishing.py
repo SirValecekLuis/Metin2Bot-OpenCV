@@ -65,7 +65,7 @@ class FishingBot(Monitor, GameState):
                 fishing_text_pos_norm[0] + fish_in_circle[0], fishing_text_pos_norm[1] + fish_in_circle[1])
 
             # We found a fish, and we will click on the fish, we do not need to check forbidden areas
-            GameUtils.mouse_left_click(normalized_pos, timer=0.05, can_click_in_forbidden_area=True)
+            GameUtils.mouse_left_click(normalized_pos, can_click_in_forbidden_area=True)
 
             # A small pause as the program is too fast
             time.sleep(0.3)
@@ -76,6 +76,7 @@ class FishingBot(Monitor, GameState):
 
     def main_loop(self) -> None:
         while True:
+            GameState.check_bot_timer()
             if GameState.bot_is_running is False:
                 time.sleep(0.5)
                 continue

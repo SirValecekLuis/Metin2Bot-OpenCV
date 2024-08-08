@@ -25,6 +25,7 @@ class MetinFarmer(Monitor, GameState):
         """Tries to click on the metin based on coordinates from the screenshot."""
 
         while True:
+            GameState.check_bot_timer()
             if GameState.bot_is_running is False:
                 time.sleep(0.5)
                 continue

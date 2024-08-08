@@ -83,6 +83,7 @@ class MiningBot(Monitor, GameState):
 
     def main_loop(self) -> None:
         while True:
+            GameState.check_bot_timer()
             if GameState.bot_is_running is False:
                 time.sleep(0.5)
                 continue

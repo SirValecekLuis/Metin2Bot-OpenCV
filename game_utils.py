@@ -9,9 +9,11 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pydirectinput
+import win32api
+import win32gui
 from PIL import Image
 
-from game_classes import Area
+from game_classes import Area, Monitor
 
 logger = logging.getLogger(__name__)
 MOVEMENT_LIST = ["up", "down", "right", "left"]
@@ -48,7 +50,8 @@ class GameUtils:
         return decorator
 
     @staticmethod
-    def take_screenshot(sct, x=0, y=0, w=0, h=0, monitor_num=1, save=False, name=""):
+    def take_screenshot(sct, x=0, y=0, w=0, h=0, save=False, name=""):
+        monitor_num = Monitor.monitor_index + 1
         if x == 0 and y == 0 and w == 0 and h == 0:
             image = sct.grab(sct.monitors[monitor_num])
             image = cv2.cvtColor(np.array(image), cv2.COLOR_BGRA2BGR)
@@ -171,19 +174,9 @@ class GameUtils:
             pydirectinput.press('z')  # Change this to Y if pickup does not work
 
     @staticmethod
-    def mouse_left_click(top_left, offset_x=0, offset_y=0, timer=0.05, can_click_in_forbidden_area=False,
+    def mouse_left_click(top_left, offset_x=0, offset_y=0, can_click_in_forbidden_area=False,
                          move_towards_forbidden=False) -> bool:
-        """
-        click on screen at x, y position
-        :param top_left: tuple (x, y)
-        :param offset_x: move + x pixels
-        :param offset_y: move + y pixels
-        :param timer: time between moving mouse and clicking, should not be lower than 0.05 otherwise causes problems
-        :param can_click_in_forbidden_area: when True then the click can click whenever it wants
-        :param move_towards_forbidden: should move to the forbidden area?
-        :return: false if click was not done, True if clicked,
-            if False it will move towards the thing it was supposed to click
-        """
+
         top_left = (top_left[0] + offset_x, top_left[1] + offset_y)
 
         # If the click is somewhere where we said we do not want to click, then we will refuse such a click.
@@ -195,11 +188,14 @@ class GameUtils:
                         GameUtils.move(area.direction, 0.2)
                     return False
 
+        x, y = top_left[0] + Monitor.monitor_left(), top_left[1] + Monitor.monitor_top()
+        origin_x, origin_y = pydirectinput.position()
+
         try:
-            pydirectinput.moveTo(*top_left, attempt_pixel_perfect=True, duration=0.06)
-            # If there is no timer, then the moveTo is not fast enough to move the mouse, so it may click too early
-            time.sleep(timer)
-            pydirectinput.click(clicks=1)  # Sometimes performs double click?
+            pydirectinput.moveTo(x, y, duration=0.06)
+            pydirectinput.click(clicks=1)
+
+            # pydirectinput.moveTo(origin_x, origin_y)
         except pydirectinput.FailSafeException:
             logger.info("Mouse out of monitor bounds")
             return False
