@@ -189,13 +189,10 @@ class GameUtils:
                     return False
 
         x, y = top_left[0] + Monitor.monitor_left(), top_left[1] + Monitor.monitor_top()
-        origin_x, origin_y = pydirectinput.position()
 
         try:
             pydirectinput.moveTo(x, y, duration=0.06)
-            pydirectinput.click(clicks=1)
-
-            # pydirectinput.moveTo(origin_x, origin_y)
+            pydirectinput.click(clicks=1, attempt_pixel_perfect=True)
         except pydirectinput.FailSafeException:
             logger.info("Mouse out of monitor bounds")
             return False
@@ -232,3 +229,7 @@ class GameUtils:
     def print_mouse_pos() -> None:
         x, y = pydirectinput.position()
         print(f"Aktuální pozice kurzoru: X = {x}, Y = {y}")
+
+    @staticmethod
+    def detect_GM() -> None:
+        ...

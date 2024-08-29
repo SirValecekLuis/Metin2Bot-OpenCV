@@ -19,6 +19,7 @@ def take_choice() -> int:
                     choice = int(input("Do you want to farm (1) or exp (2) or mine (3) or fishing(4)?\nChoice: "))
                     if choice < 1 or choice > 4:
                         continue
+                    break
                 except ValueError:
                     continue
 
@@ -49,6 +50,7 @@ def take_choice() -> int:
                     secs = int(input("How many seconds?: "))
 
                     GameState.turn_off_after_hours = hours + (mins / 60) + (secs / 3600)
+                    break
                 except ValueError:
                     continue
 

@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import Sequence
 import cv2
 import time
@@ -72,7 +73,7 @@ class FishingBot(Monitor, GameState):
 
         # Window is closed
         self.logger.info("Fish window closed")
-        time.sleep(VALUES["FISHING_WAIT_TIME"])
+        time.sleep(random.uniform(VALUES["FISHING_WAIT_TIME"] - 1, VALUES["FISHING_WAIT_TIME"] + 0.5))
 
     def main_loop(self) -> None:
         while True:

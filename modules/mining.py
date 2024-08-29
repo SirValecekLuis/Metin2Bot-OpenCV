@@ -35,7 +35,7 @@ class MiningBot(Monitor, GameState):
                 self.logger.info("Mining stopped after waiting time")
                 return True
 
-            screenshot = GameUtils.take_screenshot(self.sct, 777, 970, 260, 75)
+            screenshot = GameUtils.take_screenshot(self.sct, 777, 970, 260, 90)
 
             if not self.failed_previously:
                 mining_failed = GameUtils.min_max(screenshot, [self.MINING_FAILED], threshold=0.12)
@@ -74,8 +74,8 @@ class MiningBot(Monitor, GameState):
         if matches == -1:
             return -1
 
-        center_x = self.monitor_width // 2
-        center_y = self.monitor_height // 2
+        center_x = self.monitor_width() // 2
+        center_y = self.monitor_height() // 2
 
         closest_match = min(matches, key=lambda match: GameUtils.distance_from_center(match, center_x, center_y))
 
